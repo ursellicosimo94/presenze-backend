@@ -23,8 +23,8 @@ RUN apt-get install -y --no-install-recommends \
 
 RUN rm -rf /var/lib/apt/lists/*
 
-COPY ./requirements-dev.txt /tmp/requirements-dev.txt
-COPY ./requirements.txt /tmp/requirements.txt
+COPY ./backend/requirements-dev.txt /tmp/requirements-dev.txt
+COPY ./backend/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements-dev.txt
 
 RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
