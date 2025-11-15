@@ -1,0 +1,6 @@
+docker/dev/.zsh_history
+__pycache__/
+*.pyc
+.env
+db.sqlite3
+private_doc.md
