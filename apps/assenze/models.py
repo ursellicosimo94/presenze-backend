@@ -11,11 +11,16 @@ class TipoAssenza(models.Model):
         default=True,
         verbose_name='Richiede Approvazione Manageriale'
     )
-    id_nazionale_default = models.CharField(
-        max_length=50,
-        blank=True,
-        null=True,
-        verbose_name='Codice Nazionale/PUK di Riferimento (Default)'
+    richiede_id_nazionale = models.BooleanField(
+        default=False,
+        verbose_name='Richiede un id nazionale'
+    )
+    codice_assenza = models.CharField(
+        max_length=5,
+        null=False,
+        blank=False,
+        verbose_name="Codice assenza",
+        default="A"
     )
 
     def __str__(self):

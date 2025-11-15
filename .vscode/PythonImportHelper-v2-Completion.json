@@ -49,6 +49,22 @@
         "documentation": {}
     },
     {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
         "label": "models",
         "importPath": "django.db",
         "description": "django.db",
@@ -397,6 +413,15 @@
         "documentation": {}
     },
     {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "apps.assenze.migrations.0002_remove_tipoassenza_id_nazionale_default_and_more",
+        "description": "apps.assenze.migrations.0002_remove_tipoassenza_id_nazionale_default_and_more",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('assenze', '0001_initial'),\n    ]\n    operations = [\n        migrations.RemoveField(\n            model_name='tipoassenza',\n            name='id_nazionale_default',\n        ),\n        migrations.AddField(",
+        "detail": "apps.assenze.migrations.0002_remove_tipoassenza_id_nazionale_default_and_more",
+        "documentation": {}
+    },
+    {
         "label": "AssenzeConfig",
         "kind": 6,
         "importPath": "apps.assenze.apps",
@@ -410,7 +435,7 @@
         "kind": 6,
         "importPath": "apps.assenze.models",
         "description": "apps.assenze.models",
-        "peekOfCode": "class TipoAssenza(models.Model):\n    \"\"\"\n    Definizione dei tipi di assenza (Ferie, Malattia, Permesso, etc.).\n    \"\"\"\n    nome = models.CharField(max_length=100, unique=True, verbose_name='Nome Tipo Assenza')\n    richiede_approvazione = models.BooleanField(\n        default=True,\n        verbose_name='Richiede Approvazione Manageriale'\n    )\n    id_nazionale_default = models.CharField(",
+        "peekOfCode": "class TipoAssenza(models.Model):\n    \"\"\"\n    Definizione dei tipi di assenza (Ferie, Malattia, Permesso, etc.).\n    \"\"\"\n    nome = models.CharField(max_length=100, unique=True, verbose_name='Nome Tipo Assenza')\n    richiede_approvazione = models.BooleanField(\n        default=True,\n        verbose_name='Richiede Approvazione Manageriale'\n    )\n    richiede_id_nazionale = models.BooleanField(",
         "detail": "apps.assenze.models",
         "documentation": {}
     },
