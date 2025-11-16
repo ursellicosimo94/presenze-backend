@@ -7,6 +7,10 @@ class TipoAssenza(models.Model):
     Definizione dei tipi di assenza (Ferie, Malattia, Permesso, etc.).
     """
     nome = models.CharField(max_length=100, unique=True, verbose_name='Nome Tipo Assenza')
+    richiesta_dipendente = models.BooleanField(
+        default=False,
+        verbose_name='Richiedibile dal dipendente'
+    )
     richiede_approvazione = models.BooleanField(
         default=True,
         verbose_name='Richiede Approvazione Manageriale'
