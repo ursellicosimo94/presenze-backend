@@ -65,6 +65,14 @@
         "documentation": {}
     },
     {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
         "label": "models",
         "importPath": "django.db",
         "description": "django.db",
@@ -82,6 +90,30 @@
     },
     {
         "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "models",
+        "importPath": "django.db",
+        "description": "django.db",
+        "isExtraImport": true,
+        "detail": "django.db",
+        "documentation": {}
+    },
+    {
+        "label": "migrations",
         "importPath": "django.db",
         "description": "django.db",
         "isExtraImport": true,
@@ -422,6 +454,51 @@
         "documentation": {}
     },
     {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "apps.assenze.migrations.0003_tipoassenza_richiesta_dipendente",
+        "description": "apps.assenze.migrations.0003_tipoassenza_richiesta_dipendente",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('assenze', '0002_remove_tipoassenza_id_nazionale_default_and_more'),\n    ]\n    operations = [\n        migrations.AddField(\n            model_name='tipoassenza',\n            name='richiesta_dipendente',\n            field=models.BooleanField(default=False, verbose_name='Richiedibile dal dipendente'),\n        ),",
+        "detail": "apps.assenze.migrations.0003_tipoassenza_richiesta_dipendente",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "apps.assenze.migrations.0004_auto_20251115_1456",
+        "description": "apps.assenze.migrations.0004_auto_20251115_1456",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('assenze', '0003_tipoassenza_richiesta_dipendente'),\n    ]\n    operations = [\n        migrations.RunPython(crea_tipi_assenza_fissi, elimina_tipi_assenza_fissi),\n    ]",
+        "detail": "apps.assenze.migrations.0004_auto_20251115_1456",
+        "documentation": {}
+    },
+    {
+        "label": "crea_tipi_assenza_fissi",
+        "kind": 2,
+        "importPath": "apps.assenze.migrations.0004_auto_20251115_1456",
+        "description": "apps.assenze.migrations.0004_auto_20251115_1456",
+        "peekOfCode": "def crea_tipi_assenza_fissi(apps, schema_editor):\n    \"\"\"\n    Funzione eseguita in fase di avanzamento (forward) della migrazione.\n    Inserisce i tipi di assenza se non esistono.\n    \"\"\"\n    TipoAssenza = apps.get_model('assenze', 'TipoAssenza')\n    for data in TIPI_ASSENZA_INIZIALI:\n        nome_assenza = data['nome']\n        # Logica di Idempotenza: crea solo se il record non esiste\n        if not TipoAssenza.objects.filter(nome=nome_assenza).exists():",
+        "detail": "apps.assenze.migrations.0004_auto_20251115_1456",
+        "documentation": {}
+    },
+    {
+        "label": "elimina_tipi_assenza_fissi",
+        "kind": 2,
+        "importPath": "apps.assenze.migrations.0004_auto_20251115_1456",
+        "description": "apps.assenze.migrations.0004_auto_20251115_1456",
+        "peekOfCode": "def elimina_tipi_assenza_fissi(apps, schema_editor):\n    \"\"\"\n    Funzione eseguita in caso di rollback (reverse) della migrazione.\n    Elimina i tipi di assenza inseriti, assumendo che i nomi siano univoci.\n    \"\"\"\n    TipoAssenza = apps.get_model('contratti', 'TipoAssenza')\n    nomi_da_eliminare = [data['nome'] for data in TIPI_ASSENZA_INIZIALI]\n    deleted_count, _ = TipoAssenza.objects.filter(nome__in=nomi_da_eliminare).delete()\n    print(f\"Eliminati {deleted_count} TipoAssenza in fase di rollback.\")\nclass Migration(migrations.Migration):",
+        "detail": "apps.assenze.migrations.0004_auto_20251115_1456",
+        "documentation": {}
+    },
+    {
+        "label": "TIPI_ASSENZA_INIZIALI",
+        "kind": 5,
+        "importPath": "apps.assenze.migrations.0004_auto_20251115_1456",
+        "description": "apps.assenze.migrations.0004_auto_20251115_1456",
+        "peekOfCode": "TIPI_ASSENZA_INIZIALI = [\n    {\n        'nome': 'Malattia',\n        'richiesta_dipendente': False,\n        'richiede_approvazione': False,\n        'richiede_id_nazionale': True,\n        'codice_assenza':  'M',\n    },\n    {\n        'nome': 'Legge 104',",
+        "detail": "apps.assenze.migrations.0004_auto_20251115_1456",
+        "documentation": {}
+    },
+    {
         "label": "AssenzeConfig",
         "kind": 6,
         "importPath": "apps.assenze.apps",
@@ -435,7 +512,7 @@
         "kind": 6,
         "importPath": "apps.assenze.models",
         "description": "apps.assenze.models",
-        "peekOfCode": "class TipoAssenza(models.Model):\n    \"\"\"\n    Definizione dei tipi di assenza (Ferie, Malattia, Permesso, etc.).\n    \"\"\"\n    nome = models.CharField(max_length=100, unique=True, verbose_name='Nome Tipo Assenza')\n    richiede_approvazione = models.BooleanField(\n        default=True,\n        verbose_name='Richiede Approvazione Manageriale'\n    )\n    richiede_id_nazionale = models.BooleanField(",
+        "peekOfCode": "class TipoAssenza(models.Model):\n    \"\"\"\n    Definizione dei tipi di assenza (Ferie, Malattia, Permesso, etc.).\n    \"\"\"\n    nome = models.CharField(max_length=100, unique=True, verbose_name='Nome Tipo Assenza')\n    richiesta_dipendente = models.BooleanField(\n        default=False,\n        verbose_name='Richiedibile dal dipendente'\n    )\n    richiede_approvazione = models.BooleanField(",
         "detail": "apps.assenze.models",
         "documentation": {}
     },
@@ -455,6 +532,69 @@
         "description": "apps.contratti.migrations.0001_initial",
         "peekOfCode": "class Migration(migrations.Migration):\n    initial = True\n    dependencies = [\n        ('dipendenti', '0001_initial'),\n        migrations.swappable_dependency(settings.AUTH_USER_MODEL),\n    ]\n    operations = [\n        migrations.CreateModel(\n            name='Ccnl',\n            fields=[",
         "detail": "apps.contratti.migrations.0001_initial",
+        "documentation": {}
+    },
+    {
+        "label": "Migration",
+        "kind": 6,
+        "importPath": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "description": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "peekOfCode": "class Migration(migrations.Migration):\n    dependencies = [\n        ('contratti', '0001_initial'),\n    ]\n    operations = [\n        migrations.RunPython(crea, elimina),\n    ]",
+        "detail": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "documentation": {}
+    },
+    {
+        "label": "crea",
+        "kind": 2,
+        "importPath": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "description": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "peekOfCode": "def crea(apps, schema_editor):\n    \"\"\"\n    Funzione eseguita in fase di avanzamento (forward) della migrazione.\n    Inserisce i tipi di assenza se non esistono.\n    \"\"\"\n    Modello = apps.get_model(APP, MODEL)\n    for data in RECORDS:\n        key = data[UNIQUE_KEY]\n        # Logica di Idempotenza: crea solo se il record non esiste\n        if not Modello.objects.filter(**{UNIQUE_KEY: key}).exists():",
+        "detail": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "documentation": {}
+    },
+    {
+        "label": "elimina",
+        "kind": 2,
+        "importPath": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "description": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "peekOfCode": "def elimina(apps, schema_editor):\n    \"\"\"\n    Funzione eseguita in caso di rollback (reverse) della migrazione.\n    Elimina i tipi di assenza inseriti, assumendo che i nomi siano univoci.\n    \"\"\"\n    Modello = apps.get_model(APP, MODEL)\n    keys_da_eliminare = [data[UNIQUE_KEY] for data in RECORDS]\n    deleted_count, _ = Modello.objects.filter(**{f\"{UNIQUE_KEY}__in\": keys_da_eliminare}).delete()\n    print(f\"Eliminati {deleted_count} {MODEL} in fase di rollback.\")\nclass Migration(migrations.Migration):",
+        "detail": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "documentation": {}
+    },
+    {
+        "label": "APP",
+        "kind": 5,
+        "importPath": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "description": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "peekOfCode": "APP = 'contratti'\nMODEL = 'Ccnl'\nUNIQUE_KEY = 'nome'\nRECORDS = [\n    {\n        'nome': 'Commercio, Terziario e Servizi',\n        'n_mensilita': 14,\n    },\n    {\n        'nome': 'Metalmeccanica',",
+        "detail": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "documentation": {}
+    },
+    {
+        "label": "MODEL",
+        "kind": 5,
+        "importPath": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "description": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "peekOfCode": "MODEL = 'Ccnl'\nUNIQUE_KEY = 'nome'\nRECORDS = [\n    {\n        'nome': 'Commercio, Terziario e Servizi',\n        'n_mensilita': 14,\n    },\n    {\n        'nome': 'Metalmeccanica',\n        'n_mensilita': 13,",
+        "detail": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "documentation": {}
+    },
+    {
+        "label": "UNIQUE_KEY",
+        "kind": 5,
+        "importPath": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "description": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "peekOfCode": "UNIQUE_KEY = 'nome'\nRECORDS = [\n    {\n        'nome': 'Commercio, Terziario e Servizi',\n        'n_mensilita': 14,\n    },\n    {\n        'nome': 'Metalmeccanica',\n        'n_mensilita': 13,\n    },",
+        "detail": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "documentation": {}
+    },
+    {
+        "label": "RECORDS",
+        "kind": 5,
+        "importPath": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "description": "apps.contratti.migrations.0002_auto_20251116_1530",
+        "peekOfCode": "RECORDS = [\n    {\n        'nome': 'Commercio, Terziario e Servizi',\n        'n_mensilita': 14,\n    },\n    {\n        'nome': 'Metalmeccanica',\n        'n_mensilita': 13,\n    },\n    {",
+        "detail": "apps.contratti.migrations.0002_auto_20251116_1530",
         "documentation": {}
     },
     {
