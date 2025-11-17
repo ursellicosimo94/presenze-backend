@@ -975,16 +975,7 @@
         "kind": 5,
         "importPath": "settings.settings",
         "description": "settings.settings",
-        "peekOfCode": "RAW_ORIGINS = os.environ.get(\n    'DJANGO_ORIGINS',\n    'http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000,http://127.0.0.1:8000,http://presenze.local,http://backend.presenze.local,http://frontend.presenze.local'\n)\nRAW_ORIGINS = os.environ.get('DJANGO_ORIGINS', 'http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000,http://127.0.0.1:8000,http://presenze.local,http://backend.presenze.local,http://frontend.presenze.local')\n_origin_list = [o.strip() for o in RAW_ORIGINS.split(',') if o.strip()]\nALLOWED_HOSTS = []\nfor o in _origin_list:\n    if o.startswith('http://') or o.startswith('https://'):\n        p = urlparse(o)",
-        "detail": "settings.settings",
-        "documentation": {}
-    },
-    {
-        "label": "RAW_ORIGINS",
-        "kind": 5,
-        "importPath": "settings.settings",
-        "description": "settings.settings",
-        "peekOfCode": "RAW_ORIGINS = os.environ.get('DJANGO_ORIGINS', 'http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000,http://127.0.0.1:8000,http://presenze.local,http://backend.presenze.local,http://frontend.presenze.local')\n_origin_list = [o.strip() for o in RAW_ORIGINS.split(',') if o.strip()]\nALLOWED_HOSTS = []\nfor o in _origin_list:\n    if o.startswith('http://') or o.startswith('https://'):\n        p = urlparse(o)\n        host = p.hostname or ''\n        if p.port:\n            host = f\"{host}:{p.port}\"\n        if host:",
+        "peekOfCode": "RAW_ORIGINS = os.environ.get(\n    'DJANGO_ORIGINS',\n    'http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000,http://127.0.0.1:8000,http://presenze.local,http://backend.presenze.local,http://frontend.presenze.local'\n)\n_origin_list = [o.strip() for o in RAW_ORIGINS.split(',') if o.strip()]\nALLOWED_HOSTS = []\nfor o in _origin_list:\n    if o.startswith('http://') or o.startswith('https://'):\n        p = urlparse(o)\n        host = p.hostname or ''",
         "detail": "settings.settings",
         "documentation": {}
     },
@@ -1011,7 +1002,7 @@
         "kind": 5,
         "importPath": "settings.settings",
         "description": "settings.settings",
-        "peekOfCode": "CORS_ALLOWED_ORIGINS = [o for o in _origin_list if o.startswith('http://') or o.startswith('https://')]\nCSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()\nCORS_ALLOW_CREDENTIALS = True\nCSRF_COOKIE_SECURE = False\nCSRF_COOKIE_SAMESITE = 'Lax'\nSESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'",
+        "peekOfCode": "CORS_ALLOWED_ORIGINS = [o for o in _origin_list if o.startswith('http://') or o.startswith('https://')]\nCSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()\nCORS_ALLOW_CREDENTIALS = True\nCSRF_COOKIE_SECURE = False\nCSRF_COOKIE_SAMESITE = 'Lax'\nSESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'\nDEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'",
         "detail": "settings.settings",
         "documentation": {}
     },
@@ -1020,7 +1011,7 @@
         "kind": 5,
         "importPath": "settings.settings",
         "description": "settings.settings",
-        "peekOfCode": "CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()\nCORS_ALLOW_CREDENTIALS = True\nCSRF_COOKIE_SECURE = False\nCSRF_COOKIE_SAMESITE = 'Lax'\nSESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'",
+        "peekOfCode": "CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()\nCORS_ALLOW_CREDENTIALS = True\nCSRF_COOKIE_SECURE = False\nCSRF_COOKIE_SAMESITE = 'Lax'\nSESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'\nDEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'",
         "detail": "settings.settings",
         "documentation": {}
     },
@@ -1029,7 +1020,7 @@
         "kind": 5,
         "importPath": "settings.settings",
         "description": "settings.settings",
-        "peekOfCode": "CORS_ALLOW_CREDENTIALS = True\nCSRF_COOKIE_SECURE = False\nCSRF_COOKIE_SAMESITE = 'Lax'\nSESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'",
+        "peekOfCode": "CORS_ALLOW_CREDENTIALS = True\nCSRF_COOKIE_SECURE = False\nCSRF_COOKIE_SAMESITE = 'Lax'\nSESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'\nDEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'",
         "detail": "settings.settings",
         "documentation": {}
     },
@@ -1038,7 +1029,7 @@
         "kind": 5,
         "importPath": "settings.settings",
         "description": "settings.settings",
-        "peekOfCode": "CSRF_COOKIE_SECURE = False\nCSRF_COOKIE_SAMESITE = 'Lax'\nSESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'",
+        "peekOfCode": "CSRF_COOKIE_SECURE = False\nCSRF_COOKIE_SAMESITE = 'Lax'\nSESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'\nDEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'",
         "detail": "settings.settings",
         "documentation": {}
     },
@@ -1047,7 +1038,7 @@
         "kind": 5,
         "importPath": "settings.settings",
         "description": "settings.settings",
-        "peekOfCode": "CSRF_COOKIE_SAMESITE = 'Lax'\nSESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'",
+        "peekOfCode": "CSRF_COOKIE_SAMESITE = 'Lax'\nSESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'\nDEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'",
         "detail": "settings.settings",
         "documentation": {}
     },
@@ -1056,7 +1047,7 @@
         "kind": 5,
         "importPath": "settings.settings",
         "description": "settings.settings",
-        "peekOfCode": "SESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'",
+        "peekOfCode": "SESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'\nDEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'",
         "detail": "settings.settings",
         "documentation": {}
     },
@@ -1065,7 +1056,16 @@
         "kind": 5,
         "importPath": "settings.settings",
         "description": "settings.settings",
-        "peekOfCode": "SESSION_COOKIE_SAMESITE = 'Lax'",
+        "peekOfCode": "SESSION_COOKIE_SAMESITE = 'Lax'\nDEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'",
+        "detail": "settings.settings",
+        "documentation": {}
+    },
+    {
+        "label": "DEBUG",
+        "kind": 5,
+        "importPath": "settings.settings",
+        "description": "settings.settings",
+        "peekOfCode": "DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'",
         "detail": "settings.settings",
         "documentation": {}
     },
