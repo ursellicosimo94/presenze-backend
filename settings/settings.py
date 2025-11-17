@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os # Importa il modulo os per leggere le variabili d'ambiente
 from pathlib import Path
+from datetime import timedelta
+from urllib.parse import urlparse
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-$n)xg5d6p__j*i557q!r+==x#g=8-wtndl0s+g&8e=%8piz_01'
+SECRET_KEY =  os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -145,8 +147,6 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10
 }
 
-from datetime import timedelta
-
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10), 
     
@@ -170,3 +170,39 @@ SIMPLE_JWT = {
     'TOKEN_TYPE_CLAIM': 'token_type',
     'JTI_CLAIM': 'jti',
 }
+
+RAW_ORIGINS = os.environ.get(
+    'DJANGO_ORIGINS',
+    'http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000,http://127.0.0.1:8000,http://presenze.local,http://backend.presenze.local,http://frontend.presenze.local'
+)
+
+_origin_list = [o.strip() for o in RAW_ORIGINS.split(',') if o.strip()]
+
+ALLOWED_HOSTS = []
+for o in _origin_list:
+    if o.startswith('http://') or o.startswith('https://'):
+        p = urlparse(o)
+        host = p.hostname or ''
+        if p.port:
+            host = f"{host}:{p.port}"
+        if host:
+            ALLOWED_HOSTS.append(host)
+    else:
+        ALLOWED_HOSTS.append(o)
+
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
+CORS_ALLOWED_ORIGINS = [o for o in _origin_list if o.startswith('http://') or o.startswith('https://')]
+
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()
+
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'

@@ -419,6 +419,14 @@
         "documentation": {}
     },
     {
+        "label": "urlparse",
+        "importPath": "urllib.parse",
+        "description": "urllib.parse",
+        "isExtraImport": true,
+        "detail": "urllib.parse",
+        "documentation": {}
+    },
+    {
         "label": "path",
         "importPath": "django.urls",
         "description": "django.urls",
@@ -796,7 +804,7 @@
         "kind": 5,
         "importPath": "settings.settings",
         "description": "settings.settings",
-        "peekOfCode": "BASE_DIR = Path(__file__).resolve().parent.parent\n# Quick-start development settings - unsuitable for production\n# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/\n# SECURITY WARNING: keep the secret key used in production secret!\nSECRET_KEY = 'django-insecure-$n)xg5d6p__j*i557q!r+==x#g=8-wtndl0s+g&8e=%8piz_01'\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [",
+        "peekOfCode": "BASE_DIR = Path(__file__).resolve().parent.parent\n# Quick-start development settings - unsuitable for production\n# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/\n# SECURITY WARNING: keep the secret key used in production secret!\nSECRET_KEY =  os.environ.get('DJANGO_SECRET_KEY')\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [",
         "detail": "settings.settings",
         "documentation": {}
     },
@@ -805,7 +813,7 @@
         "kind": 5,
         "importPath": "settings.settings",
         "description": "settings.settings",
-        "peekOfCode": "SECRET_KEY = 'django-insecure-$n)xg5d6p__j*i557q!r+==x#g=8-wtndl0s+g&8e=%8piz_01'\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',",
+        "peekOfCode": "SECRET_KEY =  os.environ.get('DJANGO_SECRET_KEY')\n# SECURITY WARNING: don't run with debug turned on in production!\nDEBUG = True\nALLOWED_HOSTS = []\n# Application definition\nINSTALLED_APPS = [\n    'django.contrib.admin',\n    'django.contrib.auth',\n    'django.contrib.contenttypes',\n    'django.contrib.sessions',",
         "detail": "settings.settings",
         "documentation": {}
     },
@@ -963,11 +971,110 @@
         "documentation": {}
     },
     {
+        "label": "RAW_ORIGINS",
+        "kind": 5,
+        "importPath": "settings.settings",
+        "description": "settings.settings",
+        "peekOfCode": "RAW_ORIGINS = os.environ.get(\n    'DJANGO_ORIGINS',\n    'http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000,http://127.0.0.1:8000,http://presenze.local,http://backend.presenze.local,http://frontend.presenze.local'\n)\nRAW_ORIGINS = os.environ.get('DJANGO_ORIGINS', 'http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000,http://127.0.0.1:8000,http://presenze.local,http://backend.presenze.local,http://frontend.presenze.local')\n_origin_list = [o.strip() for o in RAW_ORIGINS.split(',') if o.strip()]\nALLOWED_HOSTS = []\nfor o in _origin_list:\n    if o.startswith('http://') or o.startswith('https://'):\n        p = urlparse(o)",
+        "detail": "settings.settings",
+        "documentation": {}
+    },
+    {
+        "label": "RAW_ORIGINS",
+        "kind": 5,
+        "importPath": "settings.settings",
+        "description": "settings.settings",
+        "peekOfCode": "RAW_ORIGINS = os.environ.get('DJANGO_ORIGINS', 'http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000,http://127.0.0.1:8000,http://presenze.local,http://backend.presenze.local,http://frontend.presenze.local')\n_origin_list = [o.strip() for o in RAW_ORIGINS.split(',') if o.strip()]\nALLOWED_HOSTS = []\nfor o in _origin_list:\n    if o.startswith('http://') or o.startswith('https://'):\n        p = urlparse(o)\n        host = p.hostname or ''\n        if p.port:\n            host = f\"{host}:{p.port}\"\n        if host:",
+        "detail": "settings.settings",
+        "documentation": {}
+    },
+    {
+        "label": "_origin_list",
+        "kind": 5,
+        "importPath": "settings.settings",
+        "description": "settings.settings",
+        "peekOfCode": "_origin_list = [o.strip() for o in RAW_ORIGINS.split(',') if o.strip()]\nALLOWED_HOSTS = []\nfor o in _origin_list:\n    if o.startswith('http://') or o.startswith('https://'):\n        p = urlparse(o)\n        host = p.hostname or ''\n        if p.port:\n            host = f\"{host}:{p.port}\"\n        if host:\n            ALLOWED_HOSTS.append(host)",
+        "detail": "settings.settings",
+        "documentation": {}
+    },
+    {
+        "label": "ALLOWED_HOSTS",
+        "kind": 5,
+        "importPath": "settings.settings",
+        "description": "settings.settings",
+        "peekOfCode": "ALLOWED_HOSTS = []\nfor o in _origin_list:\n    if o.startswith('http://') or o.startswith('https://'):\n        p = urlparse(o)\n        host = p.hostname or ''\n        if p.port:\n            host = f\"{host}:{p.port}\"\n        if host:\n            ALLOWED_HOSTS.append(host)\n    else:",
+        "detail": "settings.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CORS_ALLOWED_ORIGINS",
+        "kind": 5,
+        "importPath": "settings.settings",
+        "description": "settings.settings",
+        "peekOfCode": "CORS_ALLOWED_ORIGINS = [o for o in _origin_list if o.startswith('http://') or o.startswith('https://')]\nCSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()\nCORS_ALLOW_CREDENTIALS = True\nCSRF_COOKIE_SECURE = False\nCSRF_COOKIE_SAMESITE = 'Lax'\nSESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'",
+        "detail": "settings.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CSRF_TRUSTED_ORIGINS",
+        "kind": 5,
+        "importPath": "settings.settings",
+        "description": "settings.settings",
+        "peekOfCode": "CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS.copy()\nCORS_ALLOW_CREDENTIALS = True\nCSRF_COOKIE_SECURE = False\nCSRF_COOKIE_SAMESITE = 'Lax'\nSESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'",
+        "detail": "settings.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CORS_ALLOW_CREDENTIALS",
+        "kind": 5,
+        "importPath": "settings.settings",
+        "description": "settings.settings",
+        "peekOfCode": "CORS_ALLOW_CREDENTIALS = True\nCSRF_COOKIE_SECURE = False\nCSRF_COOKIE_SAMESITE = 'Lax'\nSESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'",
+        "detail": "settings.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CSRF_COOKIE_SECURE",
+        "kind": 5,
+        "importPath": "settings.settings",
+        "description": "settings.settings",
+        "peekOfCode": "CSRF_COOKIE_SECURE = False\nCSRF_COOKIE_SAMESITE = 'Lax'\nSESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'",
+        "detail": "settings.settings",
+        "documentation": {}
+    },
+    {
+        "label": "CSRF_COOKIE_SAMESITE",
+        "kind": 5,
+        "importPath": "settings.settings",
+        "description": "settings.settings",
+        "peekOfCode": "CSRF_COOKIE_SAMESITE = 'Lax'\nSESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'",
+        "detail": "settings.settings",
+        "documentation": {}
+    },
+    {
+        "label": "SESSION_COOKIE_SECURE",
+        "kind": 5,
+        "importPath": "settings.settings",
+        "description": "settings.settings",
+        "peekOfCode": "SESSION_COOKIE_SECURE = False\nSESSION_COOKIE_SAMESITE = 'Lax'",
+        "detail": "settings.settings",
+        "documentation": {}
+    },
+    {
+        "label": "SESSION_COOKIE_SAMESITE",
+        "kind": 5,
+        "importPath": "settings.settings",
+        "description": "settings.settings",
+        "peekOfCode": "SESSION_COOKIE_SAMESITE = 'Lax'",
+        "detail": "settings.settings",
+        "documentation": {}
+    },
+    {
         "label": "urlpatterns",
         "kind": 5,
         "importPath": "settings.urls",
         "description": "settings.urls",
-        "peekOfCode": "urlpatterns = [\n    path('admin/', admin.site.urls),\n    # Endpoint JWT per l'autenticazione\n    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),\n    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),\n    # APP URLs\n    path('api/utenti/', include('apps.utenti.urls')),\n    path('api/dipendenti/', include('apps.dipendenti.urls')),\n    path('api/contratti/', include('apps.contratti.urls')),\n    path('api/assenze/', include('apps.assenze.urls')),",
+        "peekOfCode": "urlpatterns = [\n    path('admin/', admin.site.urls),\n    # Endpoint JWT per l'autenticazione\n    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),\n    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),\n    # APP URLs\n    #path('api/utenti/', include('apps.utenti.urls')),\n    #path('api/dipendenti/', include('apps.dipendenti.urls')),\n    #path('api/contratti/', include('apps.contratti.urls')),\n    #path('api/assenze/', include('apps.assenze.urls')),",
         "detail": "settings.urls",
         "documentation": {}
     },
