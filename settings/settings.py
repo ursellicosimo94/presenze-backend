@@ -22,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY =  os.environ.get('DJANGO_SECRET_KEY')
+SECRET_KEY =  os.environ.get('BACKEND_DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -172,7 +172,7 @@ SIMPLE_JWT = {
 }
 
 RAW_ORIGINS = os.environ.get(
-    'DJANGO_ORIGINS',
+    'BACKEND_DJANGO_ORIGINS',
     'http://localhost:3000,http://localhost:8000,http://127.0.0.1:3000,http://127.0.0.1:8000,http://presenze.local,http://backend.presenze.local,http://frontend.presenze.local'
 )
 
@@ -205,4 +205,4 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_SAMESITE = 'Lax'
 
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('BACKEND_DJANGO_DEBUG', 'True') == 'True'
