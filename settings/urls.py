@@ -30,8 +30,8 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     
     # APP URLs
-    #path('api/utenti/', include('apps.utenti.urls')),
-    #path('api/dipendenti/', include('apps.dipendenti.urls')),
-    #path('api/contratti/', include('apps.contratti.urls')),
-    #path('api/assenze/', include('apps.assenze.urls')),
+    path('api/utenti/', include('apps.utenti.urls')),
+    path('api/dipendenti/', include('apps.dipendenti.urls')),
+    path('api/contratti/', include('apps.contratti.urls')),
+    path('api/assenze/', include('apps.assenze.urls')),
 ]
