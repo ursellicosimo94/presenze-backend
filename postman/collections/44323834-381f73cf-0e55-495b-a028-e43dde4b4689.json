@@ -1,0 +1,1975 @@
+{
+	"info": {
+		"_postman_id": "44323834-381f73cf-0e55-495b-a028-e43dde4b4689",
+		"name": "Presenze",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "10954272-3831-41f7-9609-1bb4514c0c02",
+								"exec": [
+									"if (pm.response.code !== 200) {",
+									"    return;",
+									"}",
+									"",
+									"const body = pm.response.json();",
+									"",
+									"pm.collectionVariables.set(\"access\", body.access);",
+									"pm.collectionVariables.set(\"refresh\", body.refresh);",
+									"",
+									"const now = Date.now();",
+									"",
+									"pm.collectionVariables.set(",
+									"    \"access_token_expiration\",",
+									"    new Date(now + 9 * 60 * 1000).toISOString()",
+									");",
+									"",
+									"pm.collectionVariables.set(",
+									"    \"refresh_token_expiration\",",
+									"    new Date(now + 7 * 24 * 60 * 60 * 1000).toISOString()",
+									");",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "44323834-c9db982c-8218-4fbe-b719-e34442dad86f",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"{{username}}\",\n    \"password\": \"{{password}}\"\n} ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/token/",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{hostname}}"
+							],
+							"path": [
+								"{{suffix}}",
+								"token",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "cbdfc86b-fe1b-4fb5-bda4-e4f7a9e19a3c",
+								"exec": [
+									"",
+									"const now = () => Date.now();",
+									"const isoFromNow = ms => new Date(Date.now() + ms).toISOString();",
+									"const setTokens = (access, refresh) => {",
+									"    pm.collectionVariables.set(\"access\", access);",
+									"    pm.collectionVariables.set(\"refresh\", refresh);",
+									"    pm.collectionVariables.set(\"access_token_expiration\", isoFromNow(9 * 60 * 1000));         // +9 minuti",
+									"    pm.collectionVariables.set(\"refresh_token_expiration\", isoFromNow(7 * 24 * 60 * 60 * 1000)); // +7 giorni",
+									"};",
+									"",
+									"// lettura variabili",
+									"const getCV = k => pm.collectionVariables.get(k);",
+									"const protocol = (getCV(\"protocol\") || \"http\").replace(/:\\/+$/, \"\");",
+									"const hostname = (getCV(\"hostname\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const suffix = (getCV(\"suffix\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const access = getCV(\"access\") || \"\";",
+									"const refresh = getCV(\"refresh\") || \"\";",
+									"const accessExp = getCV(\"access_token_expiration\") || \"\";",
+									"const refreshExp = getCV(\"refresh_token_expiration\") || \"\";",
+									"",
+									"const buildUrl = path => `${protocol}://${hostname}${suffix ? '/' + suffix : ''}${path}`;",
+									"",
+									"const isNotExpired = iso => {",
+									"    if (!iso) return false;",
+									"    const t = Date.parse(iso);",
+									"    if (isNaN(t)) return false;",
+									"    return t > Date.now();",
+									"};",
+									"",
+									"if (access) {",
+									"    if (isNotExpired(accessExp)) return;",
+									"",
+									"    if (refresh) {",
+									"        if (isNotExpired(refreshExp)) {",
+									"            const url = buildUrl(\"/token/refresh/\");",
+									"            pm.sendRequest({",
+									"                url,",
+									"                method: \"POST\",",
+									"                header: {",
+									"                    \"Content-Type\": \"application/json\",",
+									"                    \"Authorization\": `Bearer ${access}`",
+									"                },",
+									"                body: {",
+									"                    mode: \"raw\",",
+									"                    raw: JSON.stringify({ refresh })",
+									"                },",
+									"                timeout: 15000",
+									"            }, (err, res) => {",
+									"                if (err) {",
+									"                    console.error(\"Refresh request error:\", err);",
+									"                    return;",
+									"                }",
+									"                if (res.code !== 200) {",
+									"                    console.error(\"Refresh failed:\", res.status, res.code, res.text());",
+									"                    return;",
+									"                }",
+									"                let body;",
+									"                try { body = res.json(); } catch (e) {",
+									"                    console.error(\"Refresh response not JSON\", e);",
+									"                    return;",
+									"                }",
+									"                if (!body.access || !body.refresh) {",
+									"                    console.error(\"Refresh response missing tokens\", body);",
+									"                    return;",
+									"                }",
+									"                setTokens(body.access, body.refresh);",
+									"                return;",
+									"            });",
+									"",
+									"            return;",
+									"        }",
+									"    }",
+									"}",
+									"",
+									"const username = pm.environment.get(\"username\") || \"\";",
+									"const password = pm.environment.get(\"password\") || \"\";",
+									"if (!username || !password) {",
+									"    return;",
+									"}",
+									"",
+									"const tokenUrl = buildUrl(\"/token/\");",
+									"pm.sendRequest({",
+									"    url: tokenUrl,",
+									"    method: \"POST\",",
+									"    header: { \"Content-Type\": \"application/json\" },",
+									"    body: {",
+									"        mode: \"raw\",",
+									"        raw: JSON.stringify({ username, password })",
+									"    },",
+									"    timeout: 15000",
+									"}, (err, res) => {",
+									"    if (err) {",
+									"        console.error(\"Login request error:\", err);",
+									"        return;",
+									"    }",
+									"    if (res.code !== 200) {",
+									"        return;",
+									"    }",
+									"    let body;",
+									"    try { body = res.json(); } catch (e) {",
+									"        console.error(\"Login response not JSON\", e);",
+									"        return;",
+									"    }",
+									"    if (!body.access || !body.refresh) {",
+									"        console.error(\"Login response missing tokens\", body);",
+									"        return;",
+									"    }",
+									"    setTokens(body.access, body.refresh);",
+									"    return;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ad4852c8-7c2e-4f28-a5b1-53bc3d7920e9",
+								"exec": [
+									"if (pm.response.code !== 200) {",
+									"    return;",
+									"}",
+									"",
+									"const body = pm.response.json();",
+									"",
+									"pm.collectionVariables.set(\"access\", body.access);",
+									"pm.collectionVariables.set(\"refresh\", body.refresh);",
+									"",
+									"const now = Date.now();",
+									"",
+									"pm.collectionVariables.set(",
+									"    \"access_token_expiration\",",
+									"    new Date(now + 9 * 60 * 1000).toISOString()",
+									");",
+									"",
+									"pm.collectionVariables.set(",
+									"    \"refresh_token_expiration\",",
+									"    new Date(now + 7 * 24 * 60 * 60 * 1000).toISOString()",
+									");",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "44323834-4e3df951-496b-4c1e-b29b-f8096ca88d88",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh\": \"{{refresh}}\"\n} ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/token/refresh/",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{hostname}}"
+							],
+							"path": [
+								"{{suffix}}",
+								"token",
+								"refresh",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"id": "44323834-a4626635-aa96-4733-a3c5-b571eff4faec"
+		},
+		{
+			"name": "Utenti",
+			"item": [
+				{
+					"name": "Me",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "cbdfc86b-fe1b-4fb5-bda4-e4f7a9e19a3c",
+								"exec": [
+									"",
+									"const now = () => Date.now();",
+									"const isoFromNow = ms => new Date(Date.now() + ms).toISOString();",
+									"const setTokens = (access, refresh) => {",
+									"    pm.collectionVariables.set(\"access\", access);",
+									"    pm.collectionVariables.set(\"refresh\", refresh);",
+									"    pm.collectionVariables.set(\"access_token_expiration\", isoFromNow(9 * 60 * 1000));         // +9 minuti",
+									"    pm.collectionVariables.set(\"refresh_token_expiration\", isoFromNow(7 * 24 * 60 * 60 * 1000)); // +7 giorni",
+									"};",
+									"",
+									"// lettura variabili",
+									"const getCV = k => pm.collectionVariables.get(k);",
+									"const protocol = (getCV(\"protocol\") || \"http\").replace(/:\\/+$/, \"\");",
+									"const hostname = (getCV(\"hostname\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const suffix = (getCV(\"suffix\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const access = getCV(\"access\") || \"\";",
+									"const refresh = getCV(\"refresh\") || \"\";",
+									"const accessExp = getCV(\"access_token_expiration\") || \"\";",
+									"const refreshExp = getCV(\"refresh_token_expiration\") || \"\";",
+									"",
+									"const buildUrl = path => `${protocol}://${hostname}${suffix ? '/' + suffix : ''}${path}`;",
+									"",
+									"const isNotExpired = iso => {",
+									"    if (!iso) return false;",
+									"    const t = Date.parse(iso);",
+									"    if (isNaN(t)) return false;",
+									"    return t > Date.now();",
+									"};",
+									"",
+									"if (access) {",
+									"    if (isNotExpired(accessExp)) return;",
+									"",
+									"    if (refresh) {",
+									"        if (isNotExpired(refreshExp)) {",
+									"            const url = buildUrl(\"/token/refresh/\");",
+									"            pm.sendRequest({",
+									"                url,",
+									"                method: \"POST\",",
+									"                header: {",
+									"                    \"Content-Type\": \"application/json\",",
+									"                    \"Authorization\": `Bearer ${access}`",
+									"                },",
+									"                body: {",
+									"                    mode: \"raw\",",
+									"                    raw: JSON.stringify({ refresh })",
+									"                },",
+									"                timeout: 15000",
+									"            }, (err, res) => {",
+									"                if (err) {",
+									"                    console.error(\"Refresh request error:\", err);",
+									"                    return;",
+									"                }",
+									"                if (res.code !== 200) {",
+									"                    console.error(\"Refresh failed:\", res.status, res.code, res.text());",
+									"                    return;",
+									"                }",
+									"                let body;",
+									"                try { body = res.json(); } catch (e) {",
+									"                    console.error(\"Refresh response not JSON\", e);",
+									"                    return;",
+									"                }",
+									"                if (!body.access || !body.refresh) {",
+									"                    console.error(\"Refresh response missing tokens\", body);",
+									"                    return;",
+									"                }",
+									"                setTokens(body.access, body.refresh);",
+									"                return;",
+									"            });",
+									"",
+									"            return;",
+									"        }",
+									"    }",
+									"}",
+									"",
+									"const username = pm.environment.get(\"username\") || \"\";",
+									"const password = pm.environment.get(\"password\") || \"\";",
+									"if (!username || !password) {",
+									"    return;",
+									"}",
+									"",
+									"const tokenUrl = buildUrl(\"/token/\");",
+									"pm.sendRequest({",
+									"    url: tokenUrl,",
+									"    method: \"POST\",",
+									"    header: { \"Content-Type\": \"application/json\" },",
+									"    body: {",
+									"        mode: \"raw\",",
+									"        raw: JSON.stringify({ username, password })",
+									"    },",
+									"    timeout: 15000",
+									"}, (err, res) => {",
+									"    if (err) {",
+									"        console.error(\"Login request error:\", err);",
+									"        return;",
+									"    }",
+									"    if (res.code !== 200) {",
+									"        return;",
+									"    }",
+									"    let body;",
+									"    try { body = res.json(); } catch (e) {",
+									"        console.error(\"Login response not JSON\", e);",
+									"        return;",
+									"    }",
+									"    if (!body.access || !body.refresh) {",
+									"        console.error(\"Login response missing tokens\", body);",
+									"        return;",
+									"    }",
+									"    setTokens(body.access, body.refresh);",
+									"    return;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ad4852c8-7c2e-4f28-a5b1-53bc3d7920e9",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "44323834-b4f9e03f-cd6d-4e02-9583-eaad8de6029d",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/utenti/me/",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{hostname}}"
+							],
+							"path": [
+								"{{suffix}}",
+								"utenti",
+								"me",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "cbdfc86b-fe1b-4fb5-bda4-e4f7a9e19a3c",
+								"exec": [
+									"",
+									"const now = () => Date.now();",
+									"const isoFromNow = ms => new Date(Date.now() + ms).toISOString();",
+									"const setTokens = (access, refresh) => {",
+									"    pm.collectionVariables.set(\"access\", access);",
+									"    pm.collectionVariables.set(\"refresh\", refresh);",
+									"    pm.collectionVariables.set(\"access_token_expiration\", isoFromNow(9 * 60 * 1000));         // +9 minuti",
+									"    pm.collectionVariables.set(\"refresh_token_expiration\", isoFromNow(7 * 24 * 60 * 60 * 1000)); // +7 giorni",
+									"};",
+									"",
+									"// lettura variabili",
+									"const getCV = k => pm.collectionVariables.get(k);",
+									"const protocol = (getCV(\"protocol\") || \"http\").replace(/:\\/+$/, \"\");",
+									"const hostname = (getCV(\"hostname\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const suffix = (getCV(\"suffix\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const access = getCV(\"access\") || \"\";",
+									"const refresh = getCV(\"refresh\") || \"\";",
+									"const accessExp = getCV(\"access_token_expiration\") || \"\";",
+									"const refreshExp = getCV(\"refresh_token_expiration\") || \"\";",
+									"",
+									"const buildUrl = path => `${protocol}://${hostname}${suffix ? '/' + suffix : ''}${path}`;",
+									"",
+									"const isNotExpired = iso => {",
+									"    if (!iso) return false;",
+									"    const t = Date.parse(iso);",
+									"    if (isNaN(t)) return false;",
+									"    return t > Date.now();",
+									"};",
+									"",
+									"if (access) {",
+									"    if (isNotExpired(accessExp)) return;",
+									"",
+									"    if (refresh) {",
+									"        if (isNotExpired(refreshExp)) {",
+									"            const url = buildUrl(\"/token/refresh/\");",
+									"            pm.sendRequest({",
+									"                url,",
+									"                method: \"POST\",",
+									"                header: {",
+									"                    \"Content-Type\": \"application/json\",",
+									"                    \"Authorization\": `Bearer ${access}`",
+									"                },",
+									"                body: {",
+									"                    mode: \"raw\",",
+									"                    raw: JSON.stringify({ refresh })",
+									"                },",
+									"                timeout: 15000",
+									"            }, (err, res) => {",
+									"                if (err) {",
+									"                    console.error(\"Refresh request error:\", err);",
+									"                    return;",
+									"                }",
+									"                if (res.code !== 200) {",
+									"                    console.error(\"Refresh failed:\", res.status, res.code, res.text());",
+									"                    return;",
+									"                }",
+									"                let body;",
+									"                try { body = res.json(); } catch (e) {",
+									"                    console.error(\"Refresh response not JSON\", e);",
+									"                    return;",
+									"                }",
+									"                if (!body.access || !body.refresh) {",
+									"                    console.error(\"Refresh response missing tokens\", body);",
+									"                    return;",
+									"                }",
+									"                setTokens(body.access, body.refresh);",
+									"                return;",
+									"            });",
+									"",
+									"            return;",
+									"        }",
+									"    }",
+									"}",
+									"",
+									"const username = pm.environment.get(\"username\") || \"\";",
+									"const password = pm.environment.get(\"password\") || \"\";",
+									"if (!username || !password) {",
+									"    return;",
+									"}",
+									"",
+									"const tokenUrl = buildUrl(\"/token/\");",
+									"pm.sendRequest({",
+									"    url: tokenUrl,",
+									"    method: \"POST\",",
+									"    header: { \"Content-Type\": \"application/json\" },",
+									"    body: {",
+									"        mode: \"raw\",",
+									"        raw: JSON.stringify({ username, password })",
+									"    },",
+									"    timeout: 15000",
+									"}, (err, res) => {",
+									"    if (err) {",
+									"        console.error(\"Login request error:\", err);",
+									"        return;",
+									"    }",
+									"    if (res.code !== 200) {",
+									"        return;",
+									"    }",
+									"    let body;",
+									"    try { body = res.json(); } catch (e) {",
+									"        console.error(\"Login response not JSON\", e);",
+									"        return;",
+									"    }",
+									"    if (!body.access || !body.refresh) {",
+									"        console.error(\"Login response missing tokens\", body);",
+									"        return;",
+									"    }",
+									"    setTokens(body.access, body.refresh);",
+									"    return;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ad4852c8-7c2e-4f28-a5b1-53bc3d7920e9",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "44323834-f4ff2c0f-00ea-40ad-9529-2ec0c94a0403",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/utenti/",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{hostname}}"
+							],
+							"path": [
+								"{{suffix}}",
+								"utenti",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "cbdfc86b-fe1b-4fb5-bda4-e4f7a9e19a3c",
+								"exec": [
+									"",
+									"const now = () => Date.now();",
+									"const isoFromNow = ms => new Date(Date.now() + ms).toISOString();",
+									"const setTokens = (access, refresh) => {",
+									"    pm.collectionVariables.set(\"access\", access);",
+									"    pm.collectionVariables.set(\"refresh\", refresh);",
+									"    pm.collectionVariables.set(\"access_token_expiration\", isoFromNow(9 * 60 * 1000));         // +9 minuti",
+									"    pm.collectionVariables.set(\"refresh_token_expiration\", isoFromNow(7 * 24 * 60 * 60 * 1000)); // +7 giorni",
+									"};",
+									"",
+									"// lettura variabili",
+									"const getCV = k => pm.collectionVariables.get(k);",
+									"const protocol = (getCV(\"protocol\") || \"http\").replace(/:\\/+$/, \"\");",
+									"const hostname = (getCV(\"hostname\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const suffix = (getCV(\"suffix\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const access = getCV(\"access\") || \"\";",
+									"const refresh = getCV(\"refresh\") || \"\";",
+									"const accessExp = getCV(\"access_token_expiration\") || \"\";",
+									"const refreshExp = getCV(\"refresh_token_expiration\") || \"\";",
+									"",
+									"const buildUrl = path => `${protocol}://${hostname}${suffix ? '/' + suffix : ''}${path}`;",
+									"",
+									"const isNotExpired = iso => {",
+									"    if (!iso) return false;",
+									"    const t = Date.parse(iso);",
+									"    if (isNaN(t)) return false;",
+									"    return t > Date.now();",
+									"};",
+									"",
+									"if (access) {",
+									"    if (isNotExpired(accessExp)) return;",
+									"",
+									"    if (refresh) {",
+									"        if (isNotExpired(refreshExp)) {",
+									"            const url = buildUrl(\"/token/refresh/\");",
+									"            pm.sendRequest({",
+									"                url,",
+									"                method: \"POST\",",
+									"                header: {",
+									"                    \"Content-Type\": \"application/json\",",
+									"                    \"Authorization\": `Bearer ${access}`",
+									"                },",
+									"                body: {",
+									"                    mode: \"raw\",",
+									"                    raw: JSON.stringify({ refresh })",
+									"                },",
+									"                timeout: 15000",
+									"            }, (err, res) => {",
+									"                if (err) {",
+									"                    console.error(\"Refresh request error:\", err);",
+									"                    return;",
+									"                }",
+									"                if (res.code !== 200) {",
+									"                    console.error(\"Refresh failed:\", res.status, res.code, res.text());",
+									"                    return;",
+									"                }",
+									"                let body;",
+									"                try { body = res.json(); } catch (e) {",
+									"                    console.error(\"Refresh response not JSON\", e);",
+									"                    return;",
+									"                }",
+									"                if (!body.access || !body.refresh) {",
+									"                    console.error(\"Refresh response missing tokens\", body);",
+									"                    return;",
+									"                }",
+									"                setTokens(body.access, body.refresh);",
+									"                return;",
+									"            });",
+									"",
+									"            return;",
+									"        }",
+									"    }",
+									"}",
+									"",
+									"const username = pm.environment.get(\"username\") || \"\";",
+									"const password = pm.environment.get(\"password\") || \"\";",
+									"if (!username || !password) {",
+									"    return;",
+									"}",
+									"",
+									"const tokenUrl = buildUrl(\"/token/\");",
+									"pm.sendRequest({",
+									"    url: tokenUrl,",
+									"    method: \"POST\",",
+									"    header: { \"Content-Type\": \"application/json\" },",
+									"    body: {",
+									"        mode: \"raw\",",
+									"        raw: JSON.stringify({ username, password })",
+									"    },",
+									"    timeout: 15000",
+									"}, (err, res) => {",
+									"    if (err) {",
+									"        console.error(\"Login request error:\", err);",
+									"        return;",
+									"    }",
+									"    if (res.code !== 200) {",
+									"        return;",
+									"    }",
+									"    let body;",
+									"    try { body = res.json(); } catch (e) {",
+									"        console.error(\"Login response not JSON\", e);",
+									"        return;",
+									"    }",
+									"    if (!body.access || !body.refresh) {",
+									"        console.error(\"Login response missing tokens\", body);",
+									"        return;",
+									"    }",
+									"    setTokens(body.access, body.refresh);",
+									"    return;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ad4852c8-7c2e-4f28-a5b1-53bc3d7920e9",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "44323834-79811432-0c44-4e7d-a4d3-54e30a83638f",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/utenti/2/",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{hostname}}"
+							],
+							"path": [
+								"{{suffix}}",
+								"utenti",
+								"2",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Me Edit",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "cbdfc86b-fe1b-4fb5-bda4-e4f7a9e19a3c",
+								"exec": [
+									"",
+									"const now = () => Date.now();",
+									"const isoFromNow = ms => new Date(Date.now() + ms).toISOString();",
+									"const setTokens = (access, refresh) => {",
+									"    pm.collectionVariables.set(\"access\", access);",
+									"    pm.collectionVariables.set(\"refresh\", refresh);",
+									"    pm.collectionVariables.set(\"access_token_expiration\", isoFromNow(9 * 60 * 1000));         // +9 minuti",
+									"    pm.collectionVariables.set(\"refresh_token_expiration\", isoFromNow(7 * 24 * 60 * 60 * 1000)); // +7 giorni",
+									"};",
+									"",
+									"// lettura variabili",
+									"const getCV = k => pm.collectionVariables.get(k);",
+									"const protocol = (getCV(\"protocol\") || \"http\").replace(/:\\/+$/, \"\");",
+									"const hostname = (getCV(\"hostname\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const suffix = (getCV(\"suffix\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const access = getCV(\"access\") || \"\";",
+									"const refresh = getCV(\"refresh\") || \"\";",
+									"const accessExp = getCV(\"access_token_expiration\") || \"\";",
+									"const refreshExp = getCV(\"refresh_token_expiration\") || \"\";",
+									"",
+									"const buildUrl = path => `${protocol}://${hostname}${suffix ? '/' + suffix : ''}${path}`;",
+									"",
+									"const isNotExpired = iso => {",
+									"    if (!iso) return false;",
+									"    const t = Date.parse(iso);",
+									"    if (isNaN(t)) return false;",
+									"    return t > Date.now();",
+									"};",
+									"",
+									"if (access) {",
+									"    if (isNotExpired(accessExp)) return;",
+									"",
+									"    if (refresh) {",
+									"        if (isNotExpired(refreshExp)) {",
+									"            const url = buildUrl(\"/token/refresh/\");",
+									"            pm.sendRequest({",
+									"                url,",
+									"                method: \"POST\",",
+									"                header: {",
+									"                    \"Content-Type\": \"application/json\",",
+									"                    \"Authorization\": `Bearer ${access}`",
+									"                },",
+									"                body: {",
+									"                    mode: \"raw\",",
+									"                    raw: JSON.stringify({ refresh })",
+									"                },",
+									"                timeout: 15000",
+									"            }, (err, res) => {",
+									"                if (err) {",
+									"                    console.error(\"Refresh request error:\", err);",
+									"                    return;",
+									"                }",
+									"                if (res.code !== 200) {",
+									"                    console.error(\"Refresh failed:\", res.status, res.code, res.text());",
+									"                    return;",
+									"                }",
+									"                let body;",
+									"                try { body = res.json(); } catch (e) {",
+									"                    console.error(\"Refresh response not JSON\", e);",
+									"                    return;",
+									"                }",
+									"                if (!body.access || !body.refresh) {",
+									"                    console.error(\"Refresh response missing tokens\", body);",
+									"                    return;",
+									"                }",
+									"                setTokens(body.access, body.refresh);",
+									"                return;",
+									"            });",
+									"",
+									"            return;",
+									"        }",
+									"    }",
+									"}",
+									"",
+									"const username = pm.environment.get(\"username\") || \"\";",
+									"const password = pm.environment.get(\"password\") || \"\";",
+									"if (!username || !password) {",
+									"    return;",
+									"}",
+									"",
+									"const tokenUrl = buildUrl(\"/token/\");",
+									"pm.sendRequest({",
+									"    url: tokenUrl,",
+									"    method: \"POST\",",
+									"    header: { \"Content-Type\": \"application/json\" },",
+									"    body: {",
+									"        mode: \"raw\",",
+									"        raw: JSON.stringify({ username, password })",
+									"    },",
+									"    timeout: 15000",
+									"}, (err, res) => {",
+									"    if (err) {",
+									"        console.error(\"Login request error:\", err);",
+									"        return;",
+									"    }",
+									"    if (res.code !== 200) {",
+									"        return;",
+									"    }",
+									"    let body;",
+									"    try { body = res.json(); } catch (e) {",
+									"        console.error(\"Login response not JSON\", e);",
+									"        return;",
+									"    }",
+									"    if (!body.access || !body.refresh) {",
+									"        console.error(\"Login response missing tokens\", body);",
+									"        return;",
+									"    }",
+									"    setTokens(body.access, body.refresh);",
+									"    return;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ad4852c8-7c2e-4f28-a5b1-53bc3d7920e9",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "44323834-6af498a5-c2c2-459c-bab1-4e26bde3add2",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"email\": \"urselli.workmail@gmail.com\",\n    \"first_name\": \"Amministratore\",\n    \"last_name\": \"Di Sistema\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/utenti/me/",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{hostname}}"
+							],
+							"path": [
+								"{{suffix}}",
+								"utenti",
+								"me",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "cbdfc86b-fe1b-4fb5-bda4-e4f7a9e19a3c",
+								"exec": [
+									"",
+									"const now = () => Date.now();",
+									"const isoFromNow = ms => new Date(Date.now() + ms).toISOString();",
+									"const setTokens = (access, refresh) => {",
+									"    pm.collectionVariables.set(\"access\", access);",
+									"    pm.collectionVariables.set(\"refresh\", refresh);",
+									"    pm.collectionVariables.set(\"access_token_expiration\", isoFromNow(9 * 60 * 1000));         // +9 minuti",
+									"    pm.collectionVariables.set(\"refresh_token_expiration\", isoFromNow(7 * 24 * 60 * 60 * 1000)); // +7 giorni",
+									"};",
+									"",
+									"// lettura variabili",
+									"const getCV = k => pm.collectionVariables.get(k);",
+									"const protocol = (getCV(\"protocol\") || \"http\").replace(/:\\/+$/, \"\");",
+									"const hostname = (getCV(\"hostname\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const suffix = (getCV(\"suffix\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const access = getCV(\"access\") || \"\";",
+									"const refresh = getCV(\"refresh\") || \"\";",
+									"const accessExp = getCV(\"access_token_expiration\") || \"\";",
+									"const refreshExp = getCV(\"refresh_token_expiration\") || \"\";",
+									"",
+									"const buildUrl = path => `${protocol}://${hostname}${suffix ? '/' + suffix : ''}${path}`;",
+									"",
+									"const isNotExpired = iso => {",
+									"    if (!iso) return false;",
+									"    const t = Date.parse(iso);",
+									"    if (isNaN(t)) return false;",
+									"    return t > Date.now();",
+									"};",
+									"",
+									"if (access) {",
+									"    if (isNotExpired(accessExp)) return;",
+									"",
+									"    if (refresh) {",
+									"        if (isNotExpired(refreshExp)) {",
+									"            const url = buildUrl(\"/token/refresh/\");",
+									"            pm.sendRequest({",
+									"                url,",
+									"                method: \"POST\",",
+									"                header: {",
+									"                    \"Content-Type\": \"application/json\",",
+									"                    \"Authorization\": `Bearer ${access}`",
+									"                },",
+									"                body: {",
+									"                    mode: \"raw\",",
+									"                    raw: JSON.stringify({ refresh })",
+									"                },",
+									"                timeout: 15000",
+									"            }, (err, res) => {",
+									"                if (err) {",
+									"                    console.error(\"Refresh request error:\", err);",
+									"                    return;",
+									"                }",
+									"                if (res.code !== 200) {",
+									"                    console.error(\"Refresh failed:\", res.status, res.code, res.text());",
+									"                    return;",
+									"                }",
+									"                let body;",
+									"                try { body = res.json(); } catch (e) {",
+									"                    console.error(\"Refresh response not JSON\", e);",
+									"                    return;",
+									"                }",
+									"                if (!body.access || !body.refresh) {",
+									"                    console.error(\"Refresh response missing tokens\", body);",
+									"                    return;",
+									"                }",
+									"                setTokens(body.access, body.refresh);",
+									"                return;",
+									"            });",
+									"",
+									"            return;",
+									"        }",
+									"    }",
+									"}",
+									"",
+									"const username = pm.environment.get(\"username\") || \"\";",
+									"const password = pm.environment.get(\"password\") || \"\";",
+									"if (!username || !password) {",
+									"    return;",
+									"}",
+									"",
+									"const tokenUrl = buildUrl(\"/token/\");",
+									"pm.sendRequest({",
+									"    url: tokenUrl,",
+									"    method: \"POST\",",
+									"    header: { \"Content-Type\": \"application/json\" },",
+									"    body: {",
+									"        mode: \"raw\",",
+									"        raw: JSON.stringify({ username, password })",
+									"    },",
+									"    timeout: 15000",
+									"}, (err, res) => {",
+									"    if (err) {",
+									"        console.error(\"Login request error:\", err);",
+									"        return;",
+									"    }",
+									"    if (res.code !== 200) {",
+									"        return;",
+									"    }",
+									"    let body;",
+									"    try { body = res.json(); } catch (e) {",
+									"        console.error(\"Login response not JSON\", e);",
+									"        return;",
+									"    }",
+									"    if (!body.access || !body.refresh) {",
+									"        console.error(\"Login response missing tokens\", body);",
+									"        return;",
+									"    }",
+									"    setTokens(body.access, body.refresh);",
+									"    return;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ad4852c8-7c2e-4f28-a5b1-53bc3d7920e9",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "44323834-d12d2ccd-0896-4fdb-84ff-13a1e4eaa5f1",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"email\": \"urselli.workmail@gmail.com\",\n    \"first_name\": \"Amministratore\",\n    \"last_name\": \"Di Sistema\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/utenti/2/",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{hostname}}"
+							],
+							"path": [
+								"{{suffix}}",
+								"utenti",
+								"2",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "cbdfc86b-fe1b-4fb5-bda4-e4f7a9e19a3c",
+								"exec": [
+									"",
+									"const now = () => Date.now();",
+									"const isoFromNow = ms => new Date(Date.now() + ms).toISOString();",
+									"const setTokens = (access, refresh) => {",
+									"    pm.collectionVariables.set(\"access\", access);",
+									"    pm.collectionVariables.set(\"refresh\", refresh);",
+									"    pm.collectionVariables.set(\"access_token_expiration\", isoFromNow(9 * 60 * 1000));         // +9 minuti",
+									"    pm.collectionVariables.set(\"refresh_token_expiration\", isoFromNow(7 * 24 * 60 * 60 * 1000)); // +7 giorni",
+									"};",
+									"",
+									"// lettura variabili",
+									"const getCV = k => pm.collectionVariables.get(k);",
+									"const protocol = (getCV(\"protocol\") || \"http\").replace(/:\\/+$/, \"\");",
+									"const hostname = (getCV(\"hostname\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const suffix = (getCV(\"suffix\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const access = getCV(\"access\") || \"\";",
+									"const refresh = getCV(\"refresh\") || \"\";",
+									"const accessExp = getCV(\"access_token_expiration\") || \"\";",
+									"const refreshExp = getCV(\"refresh_token_expiration\") || \"\";",
+									"",
+									"const buildUrl = path => `${protocol}://${hostname}${suffix ? '/' + suffix : ''}${path}`;",
+									"",
+									"const isNotExpired = iso => {",
+									"    if (!iso) return false;",
+									"    const t = Date.parse(iso);",
+									"    if (isNaN(t)) return false;",
+									"    return t > Date.now();",
+									"};",
+									"",
+									"if (access) {",
+									"    if (isNotExpired(accessExp)) return;",
+									"",
+									"    if (refresh) {",
+									"        if (isNotExpired(refreshExp)) {",
+									"            const url = buildUrl(\"/token/refresh/\");",
+									"            pm.sendRequest({",
+									"                url,",
+									"                method: \"POST\",",
+									"                header: {",
+									"                    \"Content-Type\": \"application/json\",",
+									"                    \"Authorization\": `Bearer ${access}`",
+									"                },",
+									"                body: {",
+									"                    mode: \"raw\",",
+									"                    raw: JSON.stringify({ refresh })",
+									"                },",
+									"                timeout: 15000",
+									"            }, (err, res) => {",
+									"                if (err) {",
+									"                    console.error(\"Refresh request error:\", err);",
+									"                    return;",
+									"                }",
+									"                if (res.code !== 200) {",
+									"                    console.error(\"Refresh failed:\", res.status, res.code, res.text());",
+									"                    return;",
+									"                }",
+									"                let body;",
+									"                try { body = res.json(); } catch (e) {",
+									"                    console.error(\"Refresh response not JSON\", e);",
+									"                    return;",
+									"                }",
+									"                if (!body.access || !body.refresh) {",
+									"                    console.error(\"Refresh response missing tokens\", body);",
+									"                    return;",
+									"                }",
+									"                setTokens(body.access, body.refresh);",
+									"                return;",
+									"            });",
+									"",
+									"            return;",
+									"        }",
+									"    }",
+									"}",
+									"",
+									"const username = pm.environment.get(\"username\") || \"\";",
+									"const password = pm.environment.get(\"password\") || \"\";",
+									"if (!username || !password) {",
+									"    return;",
+									"}",
+									"",
+									"const tokenUrl = buildUrl(\"/token/\");",
+									"pm.sendRequest({",
+									"    url: tokenUrl,",
+									"    method: \"POST\",",
+									"    header: { \"Content-Type\": \"application/json\" },",
+									"    body: {",
+									"        mode: \"raw\",",
+									"        raw: JSON.stringify({ username, password })",
+									"    },",
+									"    timeout: 15000",
+									"}, (err, res) => {",
+									"    if (err) {",
+									"        console.error(\"Login request error:\", err);",
+									"        return;",
+									"    }",
+									"    if (res.code !== 200) {",
+									"        return;",
+									"    }",
+									"    let body;",
+									"    try { body = res.json(); } catch (e) {",
+									"        console.error(\"Login response not JSON\", e);",
+									"        return;",
+									"    }",
+									"    if (!body.access || !body.refresh) {",
+									"        console.error(\"Login response missing tokens\", body);",
+									"        return;",
+									"    }",
+									"    setTokens(body.access, body.refresh);",
+									"    return;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ad4852c8-7c2e-4f28-a5b1-53bc3d7920e9",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "44323834-3c22710e-7745-4808-b6b5-312f3e5e7390",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/utenti/2/",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{hostname}}"
+							],
+							"path": [
+								"{{suffix}}",
+								"utenti",
+								"2",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit password",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "cbdfc86b-fe1b-4fb5-bda4-e4f7a9e19a3c",
+								"exec": [
+									"",
+									"const now = () => Date.now();",
+									"const isoFromNow = ms => new Date(Date.now() + ms).toISOString();",
+									"const setTokens = (access, refresh) => {",
+									"    pm.collectionVariables.set(\"access\", access);",
+									"    pm.collectionVariables.set(\"refresh\", refresh);",
+									"    pm.collectionVariables.set(\"access_token_expiration\", isoFromNow(9 * 60 * 1000));         // +9 minuti",
+									"    pm.collectionVariables.set(\"refresh_token_expiration\", isoFromNow(7 * 24 * 60 * 60 * 1000)); // +7 giorni",
+									"};",
+									"",
+									"// lettura variabili",
+									"const getCV = k => pm.collectionVariables.get(k);",
+									"const protocol = (getCV(\"protocol\") || \"http\").replace(/:\\/+$/, \"\");",
+									"const hostname = (getCV(\"hostname\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const suffix = (getCV(\"suffix\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const access = getCV(\"access\") || \"\";",
+									"const refresh = getCV(\"refresh\") || \"\";",
+									"const accessExp = getCV(\"access_token_expiration\") || \"\";",
+									"const refreshExp = getCV(\"refresh_token_expiration\") || \"\";",
+									"",
+									"const buildUrl = path => `${protocol}://${hostname}${suffix ? '/' + suffix : ''}${path}`;",
+									"",
+									"const isNotExpired = iso => {",
+									"    if (!iso) return false;",
+									"    const t = Date.parse(iso);",
+									"    if (isNaN(t)) return false;",
+									"    return t > Date.now();",
+									"};",
+									"",
+									"if (access) {",
+									"    if (isNotExpired(accessExp)) return;",
+									"",
+									"    if (refresh) {",
+									"        if (isNotExpired(refreshExp)) {",
+									"            const url = buildUrl(\"/token/refresh/\");",
+									"            pm.sendRequest({",
+									"                url,",
+									"                method: \"POST\",",
+									"                header: {",
+									"                    \"Content-Type\": \"application/json\",",
+									"                    \"Authorization\": `Bearer ${access}`",
+									"                },",
+									"                body: {",
+									"                    mode: \"raw\",",
+									"                    raw: JSON.stringify({ refresh })",
+									"                },",
+									"                timeout: 15000",
+									"            }, (err, res) => {",
+									"                if (err) {",
+									"                    console.error(\"Refresh request error:\", err);",
+									"                    return;",
+									"                }",
+									"                if (res.code !== 200) {",
+									"                    console.error(\"Refresh failed:\", res.status, res.code, res.text());",
+									"                    return;",
+									"                }",
+									"                let body;",
+									"                try { body = res.json(); } catch (e) {",
+									"                    console.error(\"Refresh response not JSON\", e);",
+									"                    return;",
+									"                }",
+									"                if (!body.access || !body.refresh) {",
+									"                    console.error(\"Refresh response missing tokens\", body);",
+									"                    return;",
+									"                }",
+									"                setTokens(body.access, body.refresh);",
+									"                return;",
+									"            });",
+									"",
+									"            return;",
+									"        }",
+									"    }",
+									"}",
+									"",
+									"const username = pm.environment.get(\"username\") || \"\";",
+									"const password = pm.environment.get(\"password\") || \"\";",
+									"if (!username || !password) {",
+									"    return;",
+									"}",
+									"",
+									"const tokenUrl = buildUrl(\"/token/\");",
+									"pm.sendRequest({",
+									"    url: tokenUrl,",
+									"    method: \"POST\",",
+									"    header: { \"Content-Type\": \"application/json\" },",
+									"    body: {",
+									"        mode: \"raw\",",
+									"        raw: JSON.stringify({ username, password })",
+									"    },",
+									"    timeout: 15000",
+									"}, (err, res) => {",
+									"    if (err) {",
+									"        console.error(\"Login request error:\", err);",
+									"        return;",
+									"    }",
+									"    if (res.code !== 200) {",
+									"        return;",
+									"    }",
+									"    let body;",
+									"    try { body = res.json(); } catch (e) {",
+									"        console.error(\"Login response not JSON\", e);",
+									"        return;",
+									"    }",
+									"    if (!body.access || !body.refresh) {",
+									"        console.error(\"Login response missing tokens\", body);",
+									"        return;",
+									"    }",
+									"    setTokens(body.access, body.refresh);",
+									"    return;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ad4852c8-7c2e-4f28-a5b1-53bc3d7920e9",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "44323834-de6e3aa4-dbbd-40e5-98b9-b8bb4f7436ff",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"password\": \"{{password}}\",\n    \"password2\": \"{{password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/utenti/1/set-password/",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{hostname}}"
+							],
+							"path": [
+								"{{suffix}}",
+								"utenti",
+								"1",
+								"set-password",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Deactivate",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "cbdfc86b-fe1b-4fb5-bda4-e4f7a9e19a3c",
+								"exec": [
+									"",
+									"const now = () => Date.now();",
+									"const isoFromNow = ms => new Date(Date.now() + ms).toISOString();",
+									"const setTokens = (access, refresh) => {",
+									"    pm.collectionVariables.set(\"access\", access);",
+									"    pm.collectionVariables.set(\"refresh\", refresh);",
+									"    pm.collectionVariables.set(\"access_token_expiration\", isoFromNow(9 * 60 * 1000));         // +9 minuti",
+									"    pm.collectionVariables.set(\"refresh_token_expiration\", isoFromNow(7 * 24 * 60 * 60 * 1000)); // +7 giorni",
+									"};",
+									"",
+									"// lettura variabili",
+									"const getCV = k => pm.collectionVariables.get(k);",
+									"const protocol = (getCV(\"protocol\") || \"http\").replace(/:\\/+$/, \"\");",
+									"const hostname = (getCV(\"hostname\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const suffix = (getCV(\"suffix\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const access = getCV(\"access\") || \"\";",
+									"const refresh = getCV(\"refresh\") || \"\";",
+									"const accessExp = getCV(\"access_token_expiration\") || \"\";",
+									"const refreshExp = getCV(\"refresh_token_expiration\") || \"\";",
+									"",
+									"const buildUrl = path => `${protocol}://${hostname}${suffix ? '/' + suffix : ''}${path}`;",
+									"",
+									"const isNotExpired = iso => {",
+									"    if (!iso) return false;",
+									"    const t = Date.parse(iso);",
+									"    if (isNaN(t)) return false;",
+									"    return t > Date.now();",
+									"};",
+									"",
+									"if (access) {",
+									"    if (isNotExpired(accessExp)) return;",
+									"",
+									"    if (refresh) {",
+									"        if (isNotExpired(refreshExp)) {",
+									"            const url = buildUrl(\"/token/refresh/\");",
+									"            pm.sendRequest({",
+									"                url,",
+									"                method: \"POST\",",
+									"                header: {",
+									"                    \"Content-Type\": \"application/json\",",
+									"                    \"Authorization\": `Bearer ${access}`",
+									"                },",
+									"                body: {",
+									"                    mode: \"raw\",",
+									"                    raw: JSON.stringify({ refresh })",
+									"                },",
+									"                timeout: 15000",
+									"            }, (err, res) => {",
+									"                if (err) {",
+									"                    console.error(\"Refresh request error:\", err);",
+									"                    return;",
+									"                }",
+									"                if (res.code !== 200) {",
+									"                    console.error(\"Refresh failed:\", res.status, res.code, res.text());",
+									"                    return;",
+									"                }",
+									"                let body;",
+									"                try { body = res.json(); } catch (e) {",
+									"                    console.error(\"Refresh response not JSON\", e);",
+									"                    return;",
+									"                }",
+									"                if (!body.access || !body.refresh) {",
+									"                    console.error(\"Refresh response missing tokens\", body);",
+									"                    return;",
+									"                }",
+									"                setTokens(body.access, body.refresh);",
+									"                return;",
+									"            });",
+									"",
+									"            return;",
+									"        }",
+									"    }",
+									"}",
+									"",
+									"const username = pm.environment.get(\"username\") || \"\";",
+									"const password = pm.environment.get(\"password\") || \"\";",
+									"if (!username || !password) {",
+									"    return;",
+									"}",
+									"",
+									"const tokenUrl = buildUrl(\"/token/\");",
+									"pm.sendRequest({",
+									"    url: tokenUrl,",
+									"    method: \"POST\",",
+									"    header: { \"Content-Type\": \"application/json\" },",
+									"    body: {",
+									"        mode: \"raw\",",
+									"        raw: JSON.stringify({ username, password })",
+									"    },",
+									"    timeout: 15000",
+									"}, (err, res) => {",
+									"    if (err) {",
+									"        console.error(\"Login request error:\", err);",
+									"        return;",
+									"    }",
+									"    if (res.code !== 200) {",
+									"        return;",
+									"    }",
+									"    let body;",
+									"    try { body = res.json(); } catch (e) {",
+									"        console.error(\"Login response not JSON\", e);",
+									"        return;",
+									"    }",
+									"    if (!body.access || !body.refresh) {",
+									"        console.error(\"Login response missing tokens\", body);",
+									"        return;",
+									"    }",
+									"    setTokens(body.access, body.refresh);",
+									"    return;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ad4852c8-7c2e-4f28-a5b1-53bc3d7920e9",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "44323834-f884fd63-31a1-4b7a-b097-9f403cefac32",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/utenti/4/deactivate/",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{hostname}}"
+							],
+							"path": [
+								"{{suffix}}",
+								"utenti",
+								"4",
+								"deactivate",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Activate",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "cbdfc86b-fe1b-4fb5-bda4-e4f7a9e19a3c",
+								"exec": [
+									"",
+									"const now = () => Date.now();",
+									"const isoFromNow = ms => new Date(Date.now() + ms).toISOString();",
+									"const setTokens = (access, refresh) => {",
+									"    pm.collectionVariables.set(\"access\", access);",
+									"    pm.collectionVariables.set(\"refresh\", refresh);",
+									"    pm.collectionVariables.set(\"access_token_expiration\", isoFromNow(9 * 60 * 1000));         // +9 minuti",
+									"    pm.collectionVariables.set(\"refresh_token_expiration\", isoFromNow(7 * 24 * 60 * 60 * 1000)); // +7 giorni",
+									"};",
+									"",
+									"// lettura variabili",
+									"const getCV = k => pm.collectionVariables.get(k);",
+									"const protocol = (getCV(\"protocol\") || \"http\").replace(/:\\/+$/, \"\");",
+									"const hostname = (getCV(\"hostname\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const suffix = (getCV(\"suffix\") || \"\").replace(/^\\/+|\\/+$/g, \"\");",
+									"const access = getCV(\"access\") || \"\";",
+									"const refresh = getCV(\"refresh\") || \"\";",
+									"const accessExp = getCV(\"access_token_expiration\") || \"\";",
+									"const refreshExp = getCV(\"refresh_token_expiration\") || \"\";",
+									"",
+									"const buildUrl = path => `${protocol}://${hostname}${suffix ? '/' + suffix : ''}${path}`;",
+									"",
+									"const isNotExpired = iso => {",
+									"    if (!iso) return false;",
+									"    const t = Date.parse(iso);",
+									"    if (isNaN(t)) return false;",
+									"    return t > Date.now();",
+									"};",
+									"",
+									"if (access) {",
+									"    if (isNotExpired(accessExp)) return;",
+									"",
+									"    if (refresh) {",
+									"        if (isNotExpired(refreshExp)) {",
+									"            const url = buildUrl(\"/token/refresh/\");",
+									"            pm.sendRequest({",
+									"                url,",
+									"                method: \"POST\",",
+									"                header: {",
+									"                    \"Content-Type\": \"application/json\",",
+									"                    \"Authorization\": `Bearer ${access}`",
+									"                },",
+									"                body: {",
+									"                    mode: \"raw\",",
+									"                    raw: JSON.stringify({ refresh })",
+									"                },",
+									"                timeout: 15000",
+									"            }, (err, res) => {",
+									"                if (err) {",
+									"                    console.error(\"Refresh request error:\", err);",
+									"                    return;",
+									"                }",
+									"                if (res.code !== 200) {",
+									"                    console.error(\"Refresh failed:\", res.status, res.code, res.text());",
+									"                    return;",
+									"                }",
+									"                let body;",
+									"                try { body = res.json(); } catch (e) {",
+									"                    console.error(\"Refresh response not JSON\", e);",
+									"                    return;",
+									"                }",
+									"                if (!body.access || !body.refresh) {",
+									"                    console.error(\"Refresh response missing tokens\", body);",
+									"                    return;",
+									"                }",
+									"                setTokens(body.access, body.refresh);",
+									"                return;",
+									"            });",
+									"",
+									"            return;",
+									"        }",
+									"    }",
+									"}",
+									"",
+									"const username = pm.environment.get(\"username\") || \"\";",
+									"const password = pm.environment.get(\"password\") || \"\";",
+									"if (!username || !password) {",
+									"    return;",
+									"}",
+									"",
+									"const tokenUrl = buildUrl(\"/token/\");",
+									"pm.sendRequest({",
+									"    url: tokenUrl,",
+									"    method: \"POST\",",
+									"    header: { \"Content-Type\": \"application/json\" },",
+									"    body: {",
+									"        mode: \"raw\",",
+									"        raw: JSON.stringify({ username, password })",
+									"    },",
+									"    timeout: 15000",
+									"}, (err, res) => {",
+									"    if (err) {",
+									"        console.error(\"Login request error:\", err);",
+									"        return;",
+									"    }",
+									"    if (res.code !== 200) {",
+									"        return;",
+									"    }",
+									"    let body;",
+									"    try { body = res.json(); } catch (e) {",
+									"        console.error(\"Login response not JSON\", e);",
+									"        return;",
+									"    }",
+									"    if (!body.access || !body.refresh) {",
+									"        console.error(\"Login response missing tokens\", body);",
+									"        return;",
+									"    }",
+									"    setTokens(body.access, body.refresh);",
+									"    return;",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ad4852c8-7c2e-4f28-a5b1-53bc3d7920e9",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "44323834-e6193980-4051-4bb9-909e-cf5ae815904e",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/utenti/4/activate/",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{hostname}}"
+							],
+							"path": [
+								"{{suffix}}",
+								"utenti",
+								"4",
+								"activate",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Registrazione",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "cbdfc86b-fe1b-4fb5-bda4-e4f7a9e19a3c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "ad4852c8-7c2e-4f28-a5b1-53bc3d7920e9",
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"id": "44323834-96471038-c2bc-4694-86fc-db309904ec25",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"c.urselli\",\n    \"email\": \"urselli1994@gmail.com\",\n    \"password\": \"{{password}}\",\n    \"password2\": \"{{password}}\",\n    \"first_name\": \"Cosimo\",\n    \"last_name\": \"Urselli\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/utenti/registra/",
+							"protocol": "{{protocol}}",
+							"host": [
+								"{{hostname}}"
+							],
+							"path": [
+								"{{suffix}}",
+								"utenti",
+								"registra",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"id": "44323834-8b5b7359-a6ac-4462-8af9-ce535725bbdc"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "f9b80c6f-c9bf-4ef4-bdd0-9db1f0d2afb9",
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "59b34aab-c36b-4e81-8d5d-a0dff283a9db",
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "protocol",
+			"value": "http"
+		},
+		{
+			"key": "hostname",
+			"value": "presenze.local"
+		},
+		{
+			"key": "suffix",
+			"value": "api"
+		},
+		{
+			"key": "access",
+			"value": ""
+		},
+		{
+			"key": "refresh",
+			"value": ""
+		},
+		{
+			"key": "access_token_expiration",
+			"value": ""
+		},
+		{
+			"key": "refresh_token_expiration",
+			"value": ""
+		}
+	]
+}
