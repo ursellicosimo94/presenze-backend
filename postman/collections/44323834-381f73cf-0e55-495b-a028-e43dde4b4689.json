@@ -2245,14 +2245,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/utenti/",
+							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/dipendenti/",
 							"protocol": "{{protocol}}",
 							"host": [
 								"{{hostname}}"
 							],
 							"path": [
 								"{{suffix}}",
-								"utenti",
+								"dipendenti",
 								""
 							]
 						}
