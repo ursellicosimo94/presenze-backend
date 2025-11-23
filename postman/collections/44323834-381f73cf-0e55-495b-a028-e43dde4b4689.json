@@ -2415,14 +2415,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/utenti/2/",
+							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/dipendenti/2/",
 							"protocol": "{{protocol}}",
 							"host": [
 								"{{hostname}}"
 							],
 							"path": [
 								"{{suffix}}",
-								"utenti",
+								"dipendenti",
 								"2",
 								""
 							]
