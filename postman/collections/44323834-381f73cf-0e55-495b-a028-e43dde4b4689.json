@@ -2074,14 +2074,14 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/utenti/me/",
+							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/dipendenti/me/",
 							"protocol": "{{protocol}}",
 							"host": [
 								"{{hostname}}"
 							],
 							"path": [
 								"{{suffix}}",
-								"utenti",
+								"dipendenti",
 								"me",
 								""
 							]
