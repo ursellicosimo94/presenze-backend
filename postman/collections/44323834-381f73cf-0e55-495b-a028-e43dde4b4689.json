@@ -2415,7 +2415,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/dipendenti/2/",
+							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/dipendenti/1/",
 							"protocol": "{{protocol}}",
 							"host": [
 								"{{hostname}}"
@@ -2423,7 +2423,7 @@
 							"path": [
 								"{{suffix}}",
 								"dipendenti",
-								"2",
+								"1",
 								""
 							]
 						}
