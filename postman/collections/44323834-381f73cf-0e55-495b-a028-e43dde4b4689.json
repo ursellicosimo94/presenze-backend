@@ -2763,11 +2763,11 @@
 								}
 							]
 						},
-						"method": "PUT",
+						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"username\": \"admin\",\n    \"email\": \"urselli.workmail@gmail.com\",\n    \"first_name\": \"Amministratore\",\n    \"last_name\": \"Di Sistema\"\n}",
+							"raw": "{\n    \"nome\": \"Cosimo\",\n    \"cognome\": \"Urselli\",\n    \"note\": \"\",\n    \"codice_fiscale\": \"RSLCSM94A12L049V\",\n    \"comune_nascita\": \"Taranto\",\n    \"data_nascita\": \"1994-01-12\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -2775,7 +2775,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/dipendenti/2/",
+							"raw": "{{protocol}}://{{hostname}}/{{suffix}}/dipendenti/",
 							"protocol": "{{protocol}}",
 							"host": [
 								"{{hostname}}"
@@ -2783,7 +2783,6 @@
 							"path": [
 								"{{suffix}}",
 								"dipendenti",
-								"2",
 								""
 							]
 						}
